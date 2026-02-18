@@ -48,7 +48,7 @@ const stores = {
     password: 'gourmet123',
     name: 'Revenda Centro',
     description: 'Portfólio completo com foco em vinhos e queijos.',
-    whatsapp: '5511999991001',
+    whatsapp: '5511999609242',
     allowedProducts: ['qj-brie', 'qj-grana', 'vinho-malbec', 'vinho-branco', 'az-italiano'],
     pricing: {
       'qj-brie': 35.9,
