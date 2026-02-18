@@ -103,6 +103,8 @@ const state = {
   currentStoreCode: null,
   currentMode: null,
   cart: {},
+  adminMainTab: 'company',
+  adminCompanySubTab: 'data',
 };
 
 const loginForm = document.getElementById('loginForm');
@@ -129,9 +131,23 @@ const cartTotal = document.getElementById('cartTotal');
 const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
+const companyMainTabBtn = document.getElementById('companyMainTabBtn');
+const itemsMainTabBtn = document.getElementById('itemsMainTabBtn');
+const companyMainTab = document.getElementById('companyMainTab');
+const itemsMainTab = document.getElementById('itemsMainTab');
+
+const companyDataSubTabBtn = document.getElementById('companyDataSubTabBtn');
+const companyItemsSubTabBtn = document.getElementById('companyItemsSubTabBtn');
+const companyDataSubTab = document.getElementById('companyDataSubTab');
+const companyItemsSubTab = document.getElementById('companyItemsSubTab');
+
 const createCompanyForm = document.getElementById('createCompanyForm');
+const editCompanyForm = document.getElementById('editCompanyForm');
 const createProductForm = document.getElementById('createProductForm');
-const adminCompaniesList = document.getElementById('adminCompaniesList');
+const adminCompanySummaryList = document.getElementById('adminCompanySummaryList');
+const adminCompanySelect = document.getElementById('adminCompanySelect');
+const adminCompanyItemsList = document.getElementById('adminCompanyItemsList');
+const adminItemsList = document.getElementById('adminItemsList');
 
 const money = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
@@ -173,6 +189,15 @@ function getVisibleProducts() {
       ...product,
       storePrice: store.pricing[product.id] ?? product.basePrice,
     }));
+}
+
+function getSelectedCompanyCode() {
+  return adminCompanySelect.value;
+}
+
+function getSelectedStore() {
+  const code = getSelectedCompanyCode();
+  return stores[code] || null;
 }
 
 function renderProducts() {
@@ -279,6 +304,24 @@ function showLoginTab(tab) {
   adminLoginBox.classList.toggle('hidden', isSeller);
 }
 
+function showAdminMainTab(tab) {
+  const isCompany = tab === 'company';
+  state.adminMainTab = tab;
+  companyMainTabBtn.classList.toggle('active', isCompany);
+  itemsMainTabBtn.classList.toggle('active', !isCompany);
+  companyMainTab.classList.toggle('hidden', !isCompany);
+  itemsMainTab.classList.toggle('hidden', isCompany);
+}
+
+function showAdminCompanySubTab(tab) {
+  const isData = tab === 'data';
+  state.adminCompanySubTab = tab;
+  companyDataSubTabBtn.classList.toggle('active', isData);
+  companyItemsSubTabBtn.classList.toggle('active', !isData);
+  companyDataSubTab.classList.toggle('hidden', !isData);
+  companyItemsSubTab.classList.toggle('hidden', isData);
+}
+
 function setupStoreSession(storeCode) {
   state.currentStoreCode = storeCode;
   state.currentMode = 'store';
@@ -298,6 +341,143 @@ function setupStoreSession(storeCode) {
   renderCart();
 }
 
+function renderAdminCompanySelect() {
+  const options = Object.entries(stores)
+    .map(([code, store]) => `<option value="${code}">${store.name} (${code})</option>`)
+    .join('');
+
+  adminCompanySelect.innerHTML = options;
+}
+
+function renderAdminCompanySummaryList() {
+  adminCompanySummaryList.innerHTML = Object.entries(stores)
+    .map(
+      ([code, store]) => `
+      <div class="admin-list-row">
+        <div>
+          <strong>${store.name}</strong>
+          <p class="tag">Código: ${code}</p>
+          <small>${store.description}</small>
+        </div>
+        <div class="admin-list-meta">+${store.whatsapp}</div>
+      </div>
+    `
+    )
+    .join('');
+
+  if (!adminCompanySummaryList.innerHTML.trim()) {
+    adminCompanySummaryList.innerHTML = '<p class="tag">Nenhuma empresa cadastrada.</p>';
+  }
+}
+
+function renderEditCompanyForm() {
+  const code = getSelectedCompanyCode();
+  const store = stores[code];
+
+  if (!store) {
+    editCompanyForm.reset();
+    return;
+  }
+
+  editCompanyForm.elements.code.value = code;
+  editCompanyForm.elements.name.value = store.name;
+  editCompanyForm.elements.password.value = store.password;
+  editCompanyForm.elements.whatsapp.value = store.whatsapp;
+  editCompanyForm.elements.description.value = store.description;
+}
+
+function renderAdminCompanyItemsList() {
+  const code = getSelectedCompanyCode();
+  const store = stores[code];
+
+  if (!store) {
+    adminCompanyItemsList.innerHTML = '<p class="tag">Selecione uma empresa.</p>';
+    return;
+  }
+
+  adminCompanyItemsList.innerHTML = catalog
+    .map((product) => {
+      const enabled = store.allowedProducts.includes(product.id);
+      const price = store.pricing[product.id] ?? product.basePrice;
+
+      return `
+        <div class="admin-list-row product-list-row">
+          <div>
+            <strong>${product.name}</strong>
+            <p class="tag">${product.category} • ID: ${product.id}</p>
+          </div>
+          <div class="row-inline-fields">
+            <label class="inline-option">
+              <input type="checkbox" data-company="${code}" data-product-enable="${product.id}" ${enabled ? 'checked' : ''} />
+              Habilitado
+            </label>
+            <label class="inline-price">
+              Preço
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value="${price}"
+                data-company="${code}"
+                data-product-price="${product.id}"
+                ${enabled ? '' : 'disabled'}
+              />
+            </label>
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  if (!adminCompanyItemsList.innerHTML.trim()) {
+    adminCompanyItemsList.innerHTML = '<p class="tag">Cadastre itens para habilitar nesta empresa.</p>';
+  }
+}
+
+function renderAdminItemsList() {
+  adminItemsList.innerHTML = catalog
+    .map(
+      (product) => `
+      <form class="admin-list-row admin-item-edit-form" data-product-edit-form="${product.id}">
+        <div class="admin-item-main-fields">
+          <label>Nome<input name="name" value="${product.name}" required type="text" /></label>
+          <label>Categoria<input name="category" value="${product.category}" required type="text" /></label>
+          <label>Preço base<input name="basePrice" value="${product.basePrice}" required type="number" min="0.01" step="0.01" /></label>
+        </div>
+        <div class="admin-item-secondary-fields">
+          <label>ID<input name="id" value="${product.id}" type="text" readonly /></label>
+          <label>Descrição<textarea name="description" rows="2" required>${product.description}</textarea></label>
+          <button class="btn" type="submit">Salvar item</button>
+        </div>
+      </form>
+    `
+    )
+    .join('');
+
+  if (!adminItemsList.innerHTML.trim()) {
+    adminItemsList.innerHTML = '<p class="tag">Nenhum item cadastrado.</p>';
+  }
+}
+
+function renderAdminPanel() {
+  const currentCode = getSelectedCompanyCode();
+
+  renderAdminCompanySelect();
+  renderAdminCompanySummaryList();
+
+  if (stores[currentCode]) {
+    adminCompanySelect.value = currentCode;
+  }
+
+  if (!adminCompanySelect.value && adminCompanySelect.options.length > 0) {
+    adminCompanySelect.value = adminCompanySelect.options[0].value;
+  }
+
+  renderEditCompanyForm();
+  renderAdminCompanyItemsList();
+  renderAdminItemsList();
+}
+
 function setupAdminSession() {
   state.currentMode = 'admin';
   state.currentStoreCode = null;
@@ -309,7 +489,9 @@ function setupAdminSession() {
   logoutBtn.classList.remove('hidden');
   adminMessage.textContent = '';
 
-  renderAdminCompanies();
+  showAdminMainTab('company');
+  showAdminCompanySubTab('data');
+  renderAdminPanel();
 }
 
 function logout() {
@@ -356,9 +538,42 @@ function createStoreFromForm(formData) {
   };
 
   saveData();
-  renderAdminCompanies();
+  renderAdminPanel();
+  adminCompanySelect.value = code;
+  renderEditCompanyForm();
+  renderAdminCompanyItemsList();
   createCompanyForm.reset();
   adminMessage.textContent = `Empresa ${name} criada com sucesso.`;
+}
+
+function updateStoreFromForm(formData) {
+  const code = String(formData.get('code') || '').trim();
+  const store = stores[code];
+  if (!store) {
+    adminMessage.textContent = 'Empresa inválida para atualização.';
+    return;
+  }
+
+  const name = String(formData.get('name') || '').trim();
+  const password = String(formData.get('password') || '').trim();
+  const whatsapp = String(formData.get('whatsapp') || '').replace(/\D/g, '');
+  const description = String(formData.get('description') || '').trim();
+
+  if (!name || !password || !whatsapp || !description) {
+    adminMessage.textContent = 'Preencha todos os campos da empresa para atualizar.';
+    return;
+  }
+
+  store.name = name;
+  store.password = password;
+  store.whatsapp = whatsapp;
+  store.description = description;
+
+  saveData();
+  renderAdminPanel();
+  adminCompanySelect.value = code;
+  renderEditCompanyForm();
+  adminMessage.textContent = `Empresa ${name} atualizada com sucesso.`;
 }
 
 function createMasterProduct(formData) {
@@ -369,12 +584,12 @@ function createMasterProduct(formData) {
   const basePrice = Number(formData.get('basePrice'));
 
   if (!id || !name || !category || !description || Number.isNaN(basePrice) || basePrice <= 0) {
-    adminMessage.textContent = 'Dados do produto inválidos.';
+    adminMessage.textContent = 'Dados do item inválidos.';
     return;
   }
 
   if (catalog.some((product) => product.id === id)) {
-    adminMessage.textContent = 'Já existe um produto mestre com este ID.';
+    adminMessage.textContent = 'Já existe um item com este ID.';
     return;
   }
 
@@ -387,60 +602,43 @@ function createMasterProduct(formData) {
   });
 
   saveData();
-  renderAdminCompanies();
+  renderAdminPanel();
   createProductForm.reset();
-  adminMessage.textContent = `Produto ${name} criado com sucesso.`;
+  adminMessage.textContent = `Item ${name} criado com sucesso.`;
 }
 
-function renderAdminCompanies() {
-  const storeEntries = Object.entries(stores);
+function updateMasterProduct(productId, formData) {
+  const product = catalog.find((item) => item.id === productId);
+  if (!product) {
+    adminMessage.textContent = 'Item não encontrado para atualização.';
+    return;
+  }
 
-  adminCompaniesList.innerHTML = storeEntries
-    .map(([code, store]) => {
-      const productsMarkup = catalog
-        .map((product) => {
-          const enabled = store.allowedProducts.includes(product.id);
-          const price = store.pricing[product.id] ?? product.basePrice;
+  const name = String(formData.get('name') || '').trim();
+  const category = String(formData.get('category') || '').trim();
+  const description = String(formData.get('description') || '').trim();
+  const basePrice = Number(formData.get('basePrice'));
 
-          return `
-            <div class="company-product-row">
-              <label class="inline-option">
-                <input type="checkbox" data-company="${code}" data-product-enable="${product.id}" ${enabled ? 'checked' : ''} />
-                ${product.name}
-              </label>
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value="${price}"
-                data-company="${code}"
-                data-product-price="${product.id}"
-                ${enabled ? '' : 'disabled'}
-              />
-            </div>
-          `;
-        })
-        .join('');
+  if (!name || !category || !description || Number.isNaN(basePrice) || basePrice <= 0) {
+    adminMessage.textContent = 'Dados do item inválidos para atualização.';
+    return;
+  }
 
-      return `
-        <article class="company-card">
-          <div class="company-header">
-            <div>
-              <h4>${store.name}</h4>
-              <p class="tag">Código: ${code}</p>
-              <p>${store.description}</p>
-            </div>
-            <div class="company-meta">
-              <small>WhatsApp: +${store.whatsapp}</small>
-            </div>
-          </div>
-          <div class="company-products-grid">
-            ${productsMarkup || '<p class="tag">Cadastre produtos mestre para habilitar nesta empresa.</p>'}
-          </div>
-        </article>
-      `;
-    })
-    .join('');
+  product.name = name;
+  product.category = category;
+  product.description = description;
+  product.basePrice = basePrice;
+
+  Object.values(stores).forEach((store) => {
+    if (!store.allowedProducts.includes(productId)) return;
+    if (typeof store.pricing[productId] !== 'number' || store.pricing[productId] <= 0) {
+      store.pricing[productId] = basePrice;
+    }
+  });
+
+  saveData();
+  renderAdminPanel();
+  adminMessage.textContent = `Item ${name} atualizado com sucesso.`;
 }
 
 loginForm.addEventListener('submit', (event) => {
@@ -478,6 +676,10 @@ adminLoginForm.addEventListener('submit', (event) => {
 
 sellerTabBtn.addEventListener('click', () => showLoginTab('seller'));
 adminTabBtn.addEventListener('click', () => showLoginTab('admin'));
+companyMainTabBtn.addEventListener('click', () => showAdminMainTab('company'));
+itemsMainTabBtn.addEventListener('click', () => showAdminMainTab('items'));
+companyDataSubTabBtn.addEventListener('click', () => showAdminCompanySubTab('data'));
+companyItemsSubTabBtn.addEventListener('click', () => showAdminCompanySubTab('items'));
 
 productsGrid.addEventListener('click', (event) => {
   const target = event.target;
@@ -509,13 +711,36 @@ createCompanyForm.addEventListener('submit', (event) => {
   createStoreFromForm(formData);
 });
 
+editCompanyForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formData = new FormData(editCompanyForm);
+  updateStoreFromForm(formData);
+});
+
 createProductForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const formData = new FormData(createProductForm);
   createMasterProduct(formData);
 });
 
-adminCompaniesList.addEventListener('change', (event) => {
+adminItemsList.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const target = event.target;
+  if (!(target instanceof HTMLFormElement)) return;
+
+  const productId = target.dataset.productEditForm;
+  if (!productId) return;
+
+  const formData = new FormData(target);
+  updateMasterProduct(productId, formData);
+});
+
+adminCompanySelect.addEventListener('change', () => {
+  renderEditCompanyForm();
+  renderAdminCompanyItemsList();
+});
+
+adminCompanyItemsList.addEventListener('change', (event) => {
   const target = event.target;
   if (!(target instanceof HTMLInputElement)) return;
 
@@ -526,7 +751,7 @@ adminCompaniesList.addEventListener('change', (event) => {
 
   if (target.dataset.productEnable) {
     const productId = target.dataset.productEnable;
-    const priceInput = adminCompaniesList.querySelector(
+    const priceInput = adminCompanyItemsList.querySelector(
       `input[data-company="${companyCode}"][data-product-price="${productId}"]`
     );
 
@@ -568,3 +793,5 @@ logoutBtn.addEventListener('click', logout);
 
 loadData();
 showLoginTab('seller');
+showAdminMainTab('company');
+showAdminCompanySubTab('data');

@@ -108,12 +108,17 @@
         <div class="card admin-panel">
           <div class="section-title">
             <h2>Painel administrativo</h2>
-            <p>Crie empresas, produtos mestre e configure preços/liberação por empresa.</p>
+            <p>Organize empresas e itens em abas para cadastro e atualização.</p>
           </div>
 
-          <div class="admin-grid">
-            <section class="admin-block">
-              <h3>Nova empresa</h3>
+          <div class="admin-main-tabs" role="tablist" aria-label="Abas do painel">
+            <button id="companyMainTabBtn" class="btn ghost tab-btn active" type="button">Aba cadastro de empresa</button>
+            <button id="itemsMainTabBtn" class="btn ghost tab-btn" type="button">Aba cadastro de itens</button>
+          </div>
+
+          <section id="companyMainTab" class="admin-main-tab">
+            <div class="admin-block">
+              <h3>Cadastro de empresa</h3>
               <form id="createCompanyForm" class="form-grid compact">
                 <label>Nome da empresa<input name="name" required type="text" /></label>
                 <label>Código da empresa<input name="code" required type="text" placeholder="ex: loja-oeste" /></label>
@@ -122,30 +127,69 @@
                 <label>Descrição<textarea name="description" rows="2" required></textarea></label>
                 <button class="btn" type="submit">Criar empresa</button>
               </form>
+            </div>
+
+            <section class="admin-block">
+              <h3>Empresas cadastradas</h3>
+              <div id="adminCompanySummaryList" class="admin-list"></div>
             </section>
 
             <section class="admin-block">
-              <h3>Novo produto mestre</h3>
+              <div class="section-title">
+                <h3>Configuração por empresa</h3>
+                <p>Selecione a empresa e use as sub abas para cadastro e itens.</p>
+              </div>
+
+              <label>
+                Empresa selecionada
+                <select id="adminCompanySelect"></select>
+              </label>
+
+              <div class="admin-sub-tabs" role="tablist" aria-label="Sub abas de empresa">
+                <button id="companyDataSubTabBtn" class="btn ghost tab-btn active" type="button">Cadastro da empresa</button>
+                <button id="companyItemsSubTabBtn" class="btn ghost tab-btn" type="button">Itens habilitados e preço</button>
+              </div>
+
+              <div id="companyDataSubTab" class="admin-sub-tab">
+                <form id="editCompanyForm" class="form-grid compact">
+                  <input type="hidden" name="code" />
+                  <label>Nome da empresa<input name="name" required type="text" /></label>
+                  <label>Senha da empresa<input name="password" required type="text" /></label>
+                  <label>WhatsApp (somente números)<input name="whatsapp" required type="text" /></label>
+                  <label>Descrição<textarea name="description" rows="2" required></textarea></label>
+                  <button class="btn" type="submit">Atualizar cadastro da empresa</button>
+                </form>
+              </div>
+
+              <div id="companyItemsSubTab" class="admin-sub-tab hidden">
+                <div id="adminCompanyItemsList" class="admin-list"></div>
+              </div>
+            </section>
+          </section>
+
+          <section id="itemsMainTab" class="admin-main-tab hidden">
+            <div class="admin-block">
+              <h3>Cadastro de itens</h3>
               <form id="createProductForm" class="form-grid compact">
-                <label>Nome do produto<input name="name" required type="text" /></label>
-                <label>ID do produto<input name="id" required type="text" placeholder="ex: doce-leite" /></label>
+                <label>Nome do item<input name="name" required type="text" /></label>
+                <label>ID do item<input name="id" required type="text" placeholder="ex: doce-leite" /></label>
                 <label>Categoria<input name="category" required type="text" /></label>
                 <label>Preço base<input name="basePrice" required type="number" min="0.01" step="0.01" /></label>
                 <label>Descrição<textarea name="description" rows="2" required></textarea></label>
-                <button class="btn" type="submit">Criar produto mestre</button>
+                <button class="btn" type="submit">Criar item</button>
               </form>
+            </div>
+
+            <section class="admin-block">
+              <div class="section-title">
+                <h3>Lista de itens para cadastrar e atualizar</h3>
+                <p>Edição em formato de lista.</p>
+              </div>
+              <div id="adminItemsList" class="admin-list"></div>
             </section>
-          </div>
+          </section>
 
           <p id="adminMessage" class="helper"></p>
-
-          <section>
-            <div class="section-title">
-              <h3>Empresas e produtos liberados</h3>
-              <p>Marque os produtos habilitados e defina o preço de cada empresa.</p>
-            </div>
-            <div id="adminCompaniesList" class="admin-companies"></div>
-          </section>
         </div>
       </section>
     </main>
