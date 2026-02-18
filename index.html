@@ -23,23 +23,47 @@
       </header>
 
       <section id="loginSection" class="card card-login">
-        <h2>Acesso do revendedor</h2>
-        <p>
-          Faça login com o código da sua loja para visualizar produtos liberados e
-          preços personalizados.
-        </p>
-        <form id="loginForm" class="form-grid">
-          <label>
-            Código da loja
-            <input name="storeCode" type="text" required placeholder="ex: loja-centro" />
-          </label>
-          <label>
-            Senha
-            <input name="password" type="password" required placeholder="••••••" />
-          </label>
-          <button class="btn" type="submit">Entrar</button>
-        </form>
-        <p id="loginMessage" class="helper"></p>
+        <div class="auth-switch" role="tablist" aria-label="Tipo de acesso">
+          <button id="sellerTabBtn" class="btn ghost tab-btn active" type="button">Revendedor</button>
+          <button id="adminTabBtn" class="btn ghost tab-btn" type="button">Administrador</button>
+        </div>
+
+        <div id="sellerLoginBox">
+          <h2>Acesso do revendedor</h2>
+          <p>
+            Faça login com o código da sua loja para visualizar produtos liberados e
+            preços personalizados.
+          </p>
+          <form id="loginForm" class="form-grid">
+            <label>
+              Código da loja
+              <input name="storeCode" type="text" required placeholder="ex: loja-centro" />
+            </label>
+            <label>
+              Senha
+              <input name="password" type="password" required placeholder="••••••" />
+            </label>
+            <button class="btn" type="submit">Entrar</button>
+          </form>
+          <p id="loginMessage" class="helper"></p>
+        </div>
+
+        <div id="adminLoginBox" class="hidden">
+          <h2>Acesso do administrador</h2>
+          <p>Gerencie empresas, produtos mestre e liberação de preços por empresa.</p>
+          <form id="adminLoginForm" class="form-grid">
+            <label>
+              Usuário administrador
+              <input name="username" type="text" required placeholder="admin" />
+            </label>
+            <label>
+              Senha de administrador
+              <input name="password" type="password" required placeholder="••••••" />
+            </label>
+            <button class="btn" type="submit">Entrar como administrador</button>
+          </form>
+          <p id="adminLoginMessage" class="helper"></p>
+        </div>
       </section>
 
       <section id="storeSection" class="hidden">
@@ -77,6 +101,51 @@
               </button>
             </div>
           </aside>
+        </div>
+      </section>
+
+      <section id="adminSection" class="hidden">
+        <div class="card admin-panel">
+          <div class="section-title">
+            <h2>Painel administrativo</h2>
+            <p>Crie empresas, produtos mestre e configure preços/liberação por empresa.</p>
+          </div>
+
+          <div class="admin-grid">
+            <section class="admin-block">
+              <h3>Nova empresa</h3>
+              <form id="createCompanyForm" class="form-grid compact">
+                <label>Nome da empresa<input name="name" required type="text" /></label>
+                <label>Código da empresa<input name="code" required type="text" placeholder="ex: loja-oeste" /></label>
+                <label>Senha da empresa<input name="password" required type="text" /></label>
+                <label>WhatsApp (somente números)<input name="whatsapp" required type="text" placeholder="5511999990000" /></label>
+                <label>Descrição<textarea name="description" rows="2" required></textarea></label>
+                <button class="btn" type="submit">Criar empresa</button>
+              </form>
+            </section>
+
+            <section class="admin-block">
+              <h3>Novo produto mestre</h3>
+              <form id="createProductForm" class="form-grid compact">
+                <label>Nome do produto<input name="name" required type="text" /></label>
+                <label>ID do produto<input name="id" required type="text" placeholder="ex: doce-leite" /></label>
+                <label>Categoria<input name="category" required type="text" /></label>
+                <label>Preço base<input name="basePrice" required type="number" min="0.01" step="0.01" /></label>
+                <label>Descrição<textarea name="description" rows="2" required></textarea></label>
+                <button class="btn" type="submit">Criar produto mestre</button>
+              </form>
+            </section>
+          </div>
+
+          <p id="adminMessage" class="helper"></p>
+
+          <section>
+            <div class="section-title">
+              <h3>Empresas e produtos liberados</h3>
+              <p>Marque os produtos habilitados e defina o preço de cada empresa.</p>
+            </div>
+            <div id="adminCompaniesList" class="admin-companies"></div>
+          </section>
         </div>
       </section>
     </main>

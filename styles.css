@@ -57,8 +57,23 @@ h3 {
 }
 
 .card-login {
-  max-width: 460px;
+  max-width: 560px;
   margin: 36px auto;
+}
+
+.auth-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.tab-btn {
+  flex: 1;
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  color: #fff;
 }
 
 .form-grid {
@@ -67,17 +82,27 @@ h3 {
   margin-top: 16px;
 }
 
+.form-grid.compact {
+  margin-top: 8px;
+}
+
 label {
   display: grid;
   gap: 8px;
   font-size: 0.95rem;
 }
 
-input {
+input,
+textarea {
   padding: 12px;
   border-radius: 10px;
   border: 1px solid #cfbea8;
   font-size: 1rem;
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
 }
 
 .btn {
@@ -204,6 +229,67 @@ input {
   padding-top: 14px;
 }
 
+.admin-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.admin-block {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.admin-companies {
+  display: grid;
+  gap: 14px;
+}
+
+.company-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.company-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.company-meta {
+  display: grid;
+  place-items: end;
+}
+
+.company-products-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.company-product-row {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.inline-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .helper {
   min-height: 24px;
   color: var(--accent-dark);
@@ -222,7 +308,12 @@ input {
     text-align: left;
   }
 
-  .store-banner {
+  .store-banner,
+  .company-header {
     flex-direction: column;
+  }
+
+  .company-meta {
+    place-items: start;
   }
 }
