@@ -1,0 +1,228 @@
+:root {
+  --bg: #f5efe6;
+  --card: #fffdf9;
+  --text: #2e241f;
+  --muted: #7f6f66;
+  --accent: #7d2e2e;
+  --accent-dark: #5a2020;
+  --border: #eadfce;
+  --success: #245f3f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background: linear-gradient(120deg, #f8f2e8 0%, #f3ebe0 100%);
+}
+
+.layout {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.tag {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06rem;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Playfair Display', serif;
+  margin: 6px 0;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 15px 35px rgba(80, 55, 30, 0.08);
+  padding: 20px;
+}
+
+.card-login {
+  max-width: 460px;
+  margin: 36px auto;
+}
+
+.form-grid {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+input {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #cfbea8;
+  font-size: 1rem;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #fff;
+  background: var(--accent);
+}
+
+.btn:hover {
+  background: var(--accent-dark);
+}
+
+.btn.ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.store-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.whatsapp-box {
+  text-align: right;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 18px;
+}
+
+.section-title p {
+  margin-top: 0;
+  color: var(--muted);
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.product-card {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.product-card h4 {
+  margin: 0;
+}
+
+.price {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.cart-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-items {
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+.cart-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.cart-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.qty-controls {
+  display: inline-flex;
+  border: 1px solid #cfbea8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.qty-controls button {
+  border: none;
+  background: #f4ede2;
+  width: 28px;
+  cursor: pointer;
+}
+
+.qty-controls span {
+  min-width: 30px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-footer {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.helper {
+  min-height: 24px;
+  color: var(--accent-dark);
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 860px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .whatsapp-box {
+    text-align: left;
+  }
+
+  .store-banner {
+    flex-direction: column;
+  }
+}
