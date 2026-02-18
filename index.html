@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gourmet Prime | Revendedores</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <header class="topbar">
+        <div>
+          <p class="tag">Loja Gourmet para Revendedores</p>
+          <h1>Gourmet Prime</h1>
+        </div>
+        <button id="logoutBtn" class="btn ghost hidden" type="button">Sair</button>
+      </header>
+
+      <section id="loginSection" class="card card-login">
+        <h2>Acesso do revendedor</h2>
+        <p>
+          Faça login com o código da sua loja para visualizar produtos liberados e
+          preços personalizados.
+        </p>
+        <form id="loginForm" class="form-grid">
+          <label>
+            Código da loja
+            <input name="storeCode" type="text" required placeholder="ex: loja-centro" />
+          </label>
+          <label>
+            Senha
+            <input name="password" type="password" required placeholder="••••••" />
+          </label>
+          <button class="btn" type="submit">Entrar</button>
+        </form>
+        <p id="loginMessage" class="helper"></p>
+      </section>
+
+      <section id="storeSection" class="hidden">
+        <div class="store-banner card">
+          <div>
+            <p class="tag">Loja conectada</p>
+            <h2 id="storeName"></h2>
+            <p id="storeDescription"></p>
+          </div>
+          <div class="whatsapp-box">
+            <p>Pedidos enviados para:</p>
+            <strong id="whatsTarget"></strong>
+          </div>
+        </div>
+
+        <div class="content-grid">
+          <section class="card">
+            <div class="section-title">
+              <h3>Vitrine gourmet</h3>
+              <p>Somente itens liberados para sua loja.</p>
+            </div>
+            <div id="productsGrid" class="products-grid"></div>
+          </section>
+
+          <aside class="card cart-card">
+            <div class="section-title">
+              <h3>Carrinho</h3>
+              <p>Monte seu pedido e envie pelo WhatsApp.</p>
+            </div>
+            <div id="cartItems" class="cart-items"></div>
+            <div class="cart-footer">
+              <p>Total: <strong id="cartTotal">R$ 0,00</strong></p>
+              <button id="sendWhatsAppBtn" class="btn" type="button" disabled>
+                Enviar pedido no WhatsApp
+              </button>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
