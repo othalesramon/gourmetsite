@@ -1,4 +1,4 @@
-const catalog = [
+const defaultCatalog = [
   {
     id: 'qj-brie',
     name: 'Queijo Brie Artesanal',
@@ -43,7 +43,7 @@ const catalog = [
   },
 ];
 
-const stores = {
+const defaultStores = {
   'loja-centro': {
     password: 'gourmet123',
     name: 'Revenda Centro',
@@ -86,15 +86,40 @@ const stores = {
   },
 };
 
+const adminCredentials = {
+  username: 'admin',
+  password: 'admin123',
+};
+
+const storageKeys = {
+  stores: 'gourmetStores',
+  catalog: 'gourmetCatalog',
+};
+
+let catalog = [];
+let stores = {};
+
 const state = {
   currentStoreCode: null,
+  currentMode: null,
   cart: {},
 };
 
 const loginForm = document.getElementById('loginForm');
+const adminLoginForm = document.getElementById('adminLoginForm');
 const loginMessage = document.getElementById('loginMessage');
+const adminLoginMessage = document.getElementById('adminLoginMessage');
+const adminMessage = document.getElementById('adminMessage');
+
+const sellerTabBtn = document.getElementById('sellerTabBtn');
+const adminTabBtn = document.getElementById('adminTabBtn');
+const sellerLoginBox = document.getElementById('sellerLoginBox');
+const adminLoginBox = document.getElementById('adminLoginBox');
+
 const loginSection = document.getElementById('loginSection');
 const storeSection = document.getElementById('storeSection');
+const adminSection = document.getElementById('adminSection');
+
 const storeName = document.getElementById('storeName');
 const storeDescription = document.getElementById('storeDescription');
 const whatsTarget = document.getElementById('whatsTarget');
@@ -104,10 +129,36 @@ const cartTotal = document.getElementById('cartTotal');
 const sendWhatsAppBtn = document.getElementById('sendWhatsAppBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
+const createCompanyForm = document.getElementById('createCompanyForm');
+const createProductForm = document.getElementById('createProductForm');
+const adminCompaniesList = document.getElementById('adminCompaniesList');
+
 const money = new Intl.NumberFormat('pt-BR', {
   style: 'currency',
   currency: 'BRL',
 });
+
+function loadData() {
+  const savedStores = localStorage.getItem(storageKeys.stores);
+  const savedCatalog = localStorage.getItem(storageKeys.catalog);
+
+  stores = savedStores ? JSON.parse(savedStores) : structuredClone(defaultStores);
+  catalog = savedCatalog ? JSON.parse(savedCatalog) : structuredClone(defaultCatalog);
+}
+
+function saveData() {
+  localStorage.setItem(storageKeys.stores, JSON.stringify(stores));
+  localStorage.setItem(storageKeys.catalog, JSON.stringify(catalog));
+}
+
+function slugify(value) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 function getCurrentStore() {
   return stores[state.currentStoreCode];
@@ -115,6 +166,7 @@ function getCurrentStore() {
 
 function getVisibleProducts() {
   const store = getCurrentStore();
+  if (!store) return [];
   return catalog
     .filter((product) => store.allowedProducts.includes(product.id))
     .map((product) => ({
@@ -177,8 +229,7 @@ function renderCart() {
     })
     .join('');
 
-  cartItems.innerHTML =
-    items || '<p class="tag">Nenhum produto selecionado ainda.</p>';
+  cartItems.innerHTML = items || '<p class="tag">Nenhum produto selecionado ainda.</p>';
 
   const total = calcTotal();
   cartTotal.textContent = money.format(total);
@@ -220,8 +271,17 @@ function sendToWhatsApp() {
   window.open(url, '_blank');
 }
 
+function showLoginTab(tab) {
+  const isSeller = tab === 'seller';
+  sellerTabBtn.classList.toggle('active', isSeller);
+  adminTabBtn.classList.toggle('active', !isSeller);
+  sellerLoginBox.classList.toggle('hidden', !isSeller);
+  adminLoginBox.classList.toggle('hidden', isSeller);
+}
+
 function setupStoreSession(storeCode) {
   state.currentStoreCode = storeCode;
+  state.currentMode = 'store';
   state.cart = {};
 
   const store = getCurrentStore();
@@ -230,6 +290,7 @@ function setupStoreSession(storeCode) {
   whatsTarget.textContent = `+${store.whatsapp}`;
 
   loginSection.classList.add('hidden');
+  adminSection.classList.add('hidden');
   storeSection.classList.remove('hidden');
   logoutBtn.classList.remove('hidden');
 
@@ -237,21 +298,156 @@ function setupStoreSession(storeCode) {
   renderCart();
 }
 
+function setupAdminSession() {
+  state.currentMode = 'admin';
+  state.currentStoreCode = null;
+  state.cart = {};
+
+  loginSection.classList.add('hidden');
+  storeSection.classList.add('hidden');
+  adminSection.classList.remove('hidden');
+  logoutBtn.classList.remove('hidden');
+  adminMessage.textContent = '';
+
+  renderAdminCompanies();
+}
+
 function logout() {
+  state.currentMode = null;
   state.currentStoreCode = null;
   state.cart = {};
   storeSection.classList.add('hidden');
+  adminSection.classList.add('hidden');
   loginSection.classList.remove('hidden');
   logoutBtn.classList.add('hidden');
+
   loginForm.reset();
+  adminLoginForm.reset();
   loginMessage.textContent = '';
+  adminLoginMessage.textContent = '';
+  adminMessage.textContent = '';
+  showLoginTab('seller');
+}
+
+function createStoreFromForm(formData) {
+  const code = slugify(String(formData.get('code') || '').trim());
+  const name = String(formData.get('name') || '').trim();
+  const password = String(formData.get('password') || '').trim();
+  const whatsapp = String(formData.get('whatsapp') || '').replace(/\D/g, '');
+  const description = String(formData.get('description') || '').trim();
+
+  if (!code || !name || !password || !whatsapp || !description) {
+    adminMessage.textContent = 'Preencha todos os campos da empresa.';
+    return;
+  }
+
+  if (stores[code]) {
+    adminMessage.textContent = 'Já existe uma empresa com este código.';
+    return;
+  }
+
+  stores[code] = {
+    password,
+    name,
+    description,
+    whatsapp,
+    allowedProducts: [],
+    pricing: {},
+  };
+
+  saveData();
+  renderAdminCompanies();
+  createCompanyForm.reset();
+  adminMessage.textContent = `Empresa ${name} criada com sucesso.`;
+}
+
+function createMasterProduct(formData) {
+  const id = slugify(String(formData.get('id') || '').trim());
+  const name = String(formData.get('name') || '').trim();
+  const category = String(formData.get('category') || '').trim();
+  const description = String(formData.get('description') || '').trim();
+  const basePrice = Number(formData.get('basePrice'));
+
+  if (!id || !name || !category || !description || Number.isNaN(basePrice) || basePrice <= 0) {
+    adminMessage.textContent = 'Dados do produto inválidos.';
+    return;
+  }
+
+  if (catalog.some((product) => product.id === id)) {
+    adminMessage.textContent = 'Já existe um produto mestre com este ID.';
+    return;
+  }
+
+  catalog.push({
+    id,
+    name,
+    category,
+    description,
+    basePrice,
+  });
+
+  saveData();
+  renderAdminCompanies();
+  createProductForm.reset();
+  adminMessage.textContent = `Produto ${name} criado com sucesso.`;
+}
+
+function renderAdminCompanies() {
+  const storeEntries = Object.entries(stores);
+
+  adminCompaniesList.innerHTML = storeEntries
+    .map(([code, store]) => {
+      const productsMarkup = catalog
+        .map((product) => {
+          const enabled = store.allowedProducts.includes(product.id);
+          const price = store.pricing[product.id] ?? product.basePrice;
+
+          return `
+            <div class="company-product-row">
+              <label class="inline-option">
+                <input type="checkbox" data-company="${code}" data-product-enable="${product.id}" ${enabled ? 'checked' : ''} />
+                ${product.name}
+              </label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value="${price}"
+                data-company="${code}"
+                data-product-price="${product.id}"
+                ${enabled ? '' : 'disabled'}
+              />
+            </div>
+          `;
+        })
+        .join('');
+
+      return `
+        <article class="company-card">
+          <div class="company-header">
+            <div>
+              <h4>${store.name}</h4>
+              <p class="tag">Código: ${code}</p>
+              <p>${store.description}</p>
+            </div>
+            <div class="company-meta">
+              <small>WhatsApp: +${store.whatsapp}</small>
+            </div>
+          </div>
+          <div class="company-products-grid">
+            ${productsMarkup || '<p class="tag">Cadastre produtos mestre para habilitar nesta empresa.</p>'}
+          </div>
+        </article>
+      `;
+    })
+    .join('');
 }
 
 loginForm.addEventListener('submit', (event) => {
   event.preventDefault();
 
   const formData = new FormData(loginForm);
-  const storeCode = String(formData.get('storeCode') || '').trim().toLowerCase();
+  const storeCode = slugify(String(formData.get('storeCode') || '').trim());
   const password = String(formData.get('password') || '').trim();
 
   const store = stores[storeCode];
@@ -263,6 +459,25 @@ loginForm.addEventListener('submit', (event) => {
   loginMessage.textContent = '';
   setupStoreSession(storeCode);
 });
+
+adminLoginForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const formData = new FormData(adminLoginForm);
+  const username = String(formData.get('username') || '').trim().toLowerCase();
+  const password = String(formData.get('password') || '').trim();
+
+  if (username !== adminCredentials.username || password !== adminCredentials.password) {
+    adminLoginMessage.textContent = 'Usuário ou senha de administrador inválidos.';
+    return;
+  }
+
+  adminLoginMessage.textContent = '';
+  setupAdminSession();
+});
+
+sellerTabBtn.addEventListener('click', () => showLoginTab('seller'));
+adminTabBtn.addEventListener('click', () => showLoginTab('admin'));
 
 productsGrid.addEventListener('click', (event) => {
   const target = event.target;
@@ -288,5 +503,68 @@ cartItems.addEventListener('click', (event) => {
   }
 });
 
+createCompanyForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formData = new FormData(createCompanyForm);
+  createStoreFromForm(formData);
+});
+
+createProductForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const formData = new FormData(createProductForm);
+  createMasterProduct(formData);
+});
+
+adminCompaniesList.addEventListener('change', (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement)) return;
+
+  const companyCode = target.dataset.company;
+  if (!companyCode || !stores[companyCode]) return;
+
+  const store = stores[companyCode];
+
+  if (target.dataset.productEnable) {
+    const productId = target.dataset.productEnable;
+    const priceInput = adminCompaniesList.querySelector(
+      `input[data-company="${companyCode}"][data-product-price="${productId}"]`
+    );
+
+    if (target.checked) {
+      if (!store.allowedProducts.includes(productId)) {
+        store.allowedProducts.push(productId);
+      }
+      if (priceInput instanceof HTMLInputElement) {
+        priceInput.disabled = false;
+        const parsed = Number(priceInput.value);
+        const fallback = catalog.find((item) => item.id === productId)?.basePrice || 0;
+        store.pricing[productId] = parsed > 0 ? parsed : fallback;
+      }
+    } else {
+      store.allowedProducts = store.allowedProducts.filter((id) => id !== productId);
+      delete store.pricing[productId];
+      if (priceInput instanceof HTMLInputElement) {
+        priceInput.disabled = true;
+      }
+    }
+
+    saveData();
+    return;
+  }
+
+  if (target.dataset.productPrice) {
+    const productId = target.dataset.productPrice;
+    const parsed = Number(target.value);
+    if (Number.isNaN(parsed) || parsed <= 0) return;
+
+    if (!store.allowedProducts.includes(productId)) return;
+    store.pricing[productId] = parsed;
+    saveData();
+  }
+});
+
 sendWhatsAppBtn.addEventListener('click', sendToWhatsApp);
 logoutBtn.addEventListener('click', logout);
+
+loadData();
+showLoginTab('seller');
